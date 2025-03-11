@@ -19,7 +19,6 @@ project "Client Core"
 			"../../vendor/jpeg-9f",
 			"../../vendor/pthreads/include",
 			"../../vendor/sparsehash/src/",
-			"../../vendor/detours/4.0.1/src",
 			"../../vendor/discord-rpc/discord/include",
 		}
 
@@ -32,8 +31,6 @@ project "Client Core"
 		["Resources/*"] = {"**.rc", "../launch/resource/mtaicon.ico"},
 		["*"] = "premake5.lua"
 	}
-
-	links { "detours" }
 
 	files {
 		"premake5.lua",

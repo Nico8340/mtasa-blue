@@ -11,12 +11,11 @@ project "Loader"
 		"../../Shared/sdk",
 		"../sdk",
 		"../../vendor",
-		"../../vendor/detours/4.0.1/src",
 	}
 
 	links {
 		"unrar", "d3d9",
-		"detours", "Imagehlp",
+		"Imagehlp",
 		"../../vendor/nvapi/x86/nvapi.lib",
 		"cryptopp",
 	}

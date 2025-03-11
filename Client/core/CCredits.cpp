@@ -277,7 +277,6 @@ CCredits::CCredits()
         "Crowdin (https://crowdin.com/)\n"
         "cryptopp (https://cryptopp.com/)\n"
         "cURL (https://curl.se/)\n"
-        "Detours (https://github.com/microsoft/Detours)\n"
         "Discord (https://discord.com/)\n"
         "Docker (https://www.docker.com/)\n"
         "Embedded HTTP Server (https://ehs.fritz-elfert.de/)\n"

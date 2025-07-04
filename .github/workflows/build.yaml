@@ -1,6 +1,6 @@
 name: Build
 
-# Trigger the workflow on any pull request, push or manual dispatch
+# Trigger the workflow on pull request, push, or manual dispatch
 on: [pull_request, push, workflow_dispatch]
 
 jobs:
@@ -10,10 +10,13 @@ jobs:
         platform: [win32, x64, arm64]
     name: windows-${{ matrix.platform }}
     runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/cache@v4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Cache DirectX Files
+        uses: actions/cache@v4
         id: cache-dxfiles
         with:
           path: utils/DXFiles
@@ -21,40 +24,48 @@ jobs:
 
       - name: Download DirectX
         if: steps.cache-dxfiles.outputs.cache-hit != 'true'
-        run: Invoke-WebRequest https://mirror-cdn.multitheftauto.com/bdata/DXFiles.zip -OutFile utils/DXFiles.zip
+        run: |
+          Invoke-WebRequest https://mirror-cdn.multitheftauto.com/bdata/DXFiles.zip -OutFile utils/DXFiles.zip
         shell: powershell
 
       - name: Extract DirectX
         if: steps.cache-dxfiles.outputs.cache-hit != 'true'
-        run: Expand-Archive -Path utils/DXFiles.zip -DestinationPath utils/DXFiles
+        run: |
+          Expand-Archive -Path utils/DXFiles.zip -DestinationPath utils/DXFiles
         shell: powershell
 
       - name: Install CEF
         run: utils\premake5 install_cef
+        shell: cmd
 
       - name: Install data files
         run: utils\premake5 install_data
+        shell: cmd
 
-      - name: Run Build
+      - name: Run Windows Build
         run: win-build.bat release ${{ matrix.platform }}
         shell: cmd
         env:
-          DXSDK_DIR: './utils/DXFiles/'
-          CI: 'true'
+          DXSDK_DIR: .\utils\DXFiles\
+          CI: true
 
-      - name: Create build artifacts
+      - name: Compose files
         run: utils\premake5 compose_files
+        shell: cmd
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: InstallFiles-${{ matrix.platform }}
+          name: InstallFiles-windows-${{ matrix.platform }}
           path: InstallFiles/
 
   macOS:
     name: macOS
-    runs-on: macOS-13
+    runs-on: macos-13
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
       - name: Install MySQL
         run: brew install mysql
@@ -63,8 +74,14 @@ jobs:
       - name: Link MySQL
         run: brew link --overwrite mysql
 
-      - name: Run Build
+      - name: Run macOS Build
         run: ./linux-build.sh --os=macosx
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: InstallFiles-macos
+          path: InstallFiles/
 
   linux:
     strategy:
@@ -73,9 +90,17 @@ jobs:
     name: linux-${{ matrix.architecture }}
     runs-on: ubuntu-latest
     container:
-      image: docker://ghcr.io/multitheftauto/mtasa-blue-build:latest
-    steps:
-      - uses: actions/checkout@v4
+      image: ghcr.io/multitheftauto/mtasa-blue-build:latest
 
-      - name: Run Build
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Run Linux Build
         run: ./linux-build.sh --arch=${{ matrix.architecture }}
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: InstallFiles-linux-${{ matrix.architecture }}
+          path: InstallFiles/
